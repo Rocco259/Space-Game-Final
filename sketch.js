@@ -1,0 +1,162 @@
+var spaceShip, spaceShipImg1, spaceShipImg2, spaceShipImg3, spaceShipImg4;
+var star, starImg, starGroup;
+var bullet, bulletImg, bulletGroup;
+var meteor, meteorImg, meteorGroup;
+var explosion;
+var score = 0;
+var END =0;
+var PLAY =1;
+var gameState = PLAY;
+function preload(){
+  bg= loadImage("space.jpg");
+
+  //Star
+  starImg = loadImage("star.png");
+
+  //Spaceship
+  spaceShipImg1 = loadImage("spacecraft1.png");
+  spaceShipImg2 = loadImage("spacecraft2.png");
+  spaceShipImg3 = loadImage("spacecraft3.png");
+  spaceShipImg4 = loadImage("spacecraft4.png");
+
+  //Bullet
+  bulletImg = loadImage("bullet.png");
+
+  //Meteor
+  meteorImg = loadImage("meteor.png");
+
+  //Explosion
+  explosion = loadImage("explosion.png");
+}
+
+function setup() {
+  createCanvas(800, 800);
+
+  spaceShip = createSprite(370, 750);
+  spaceShip.addImage("default", spaceShipImg1);
+  spaceShip.scale = 0.2;
+  
+  bulletGroup = createGroup();
+  starGroup = createGroup();
+  meteorGroup = createGroup();
+}
+
+function draw() {
+  background(bg);
+
+ if(gameState === PLAY){
+ 
+  if(keyDown("right")){
+    spaceShip.x += 4;
+  }
+
+  if(keyDown("left")){
+    spaceShip.x -= 4;
+  }
+  
+  if(keyDown(32)){
+  shoot();
+  }
+
+spawnMeteor();
+spawnStar();
+starHit();
+SpaceShipDestroy();
+meteorDestroy();
+adapt();
+ }
+
+ if(gameState === PLAY){
+  fill("white");
+  strokeWeight(4);
+  text("Score: "+ score, 700, 100);
+ }
+ 
+if(gameState === END){
+  spaceShip.destroy();
+  meteorGroup.destroyEach();
+  starGroup.destroyEach();
+  bulletGroup.destroyEach();
+  background(0);
+  fill("white");
+  textSize(30);
+  stroke("Yellow");
+  text("You Lose!", 320, 400);
+  text("Game Over!", 300, 450);
+  text("You Scored: " + score + " Points!", 240, 500);
+}
+
+  console.log(score);
+  
+
+
+
+  drawSprites();
+}
+
+function spawnMeteor(){
+  if(frameCount%160 === 0){
+    meteor = createSprite(30, -30);
+    meteor.addImage(meteorImg);
+    meteor.x = Math.round(random(100, 700));
+    meteor.scale = 0.2;
+    meteor.velocityY = 3;
+    meteorGroup.add(meteor);
+  }
+}
+
+function spawnStar(){
+  if(frameCount%300 === 0){
+    star = createSprite(Math.round(random(100, 700)), -50);
+    star.addImage(starImg);
+    star.velocityY = 4;
+    star.scale = 0.5;
+    starGroup.add(star);
+  }
+
+}
+
+
+function starHit(){
+  if(spaceShip.isTouching(starGroup)){
+    starGroup.destroyEach();
+    score = score + 5;
+  }
+
+}
+
+function meteorDestroy(){
+  if(bulletGroup.isTouching(meteorGroup)){
+    meteorGroup.destroyEach();
+    bulletGroup.destroyEach();
+    score = score + 5;
+  }
+}
+
+//All the meteors dissapear when only one is hitting the ship
+function SpaceShipDestroy(){
+  if(spaceShip.isTouching(meteorGroup)){
+    spaceShip.destroy();
+    meteorGroup.destroyEach();
+    meteorGroup.velocityY = 0;
+    spaceShip.addImage(explosion);
+    gameState = END;
+  }
+}
+
+function shoot(){
+  bullet = createSprite(spaceShip.x, spaceShip.y - 100);
+  bullet.addImage(bulletImg);
+  bullet.scale = 0.2;
+  //bullet.visible = false;
+  bulletGroup.add(bullet);
+  bullet.x = spaceShip.x;
+  bulletGroup.setVelocityEach(0,-5);
+}
+
+function adapt(){
+  if(score === 15){
+    meteorGroup.setVelocityEach(0, 6);
+    starGroup.setVelocityEach(0, 6);
+  }
+}
